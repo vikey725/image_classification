@@ -19,34 +19,12 @@ class MNISTModel(Model):
         self.dropout1 = Dropout(0.5)
         self.dense2 = Dense(10, activation='softmax')
 
-    def call(self, input_tensor):
+    def call(self, input_tensor, is_training=True, mask=None):
         layer = self.conv1(input_tensor)
         layer = self.pool1(layer)
         layer = self.flatten(layer)
         layer = self.dense1(layer)
-        layer = self.dropout1(layer)
+        if is_training:
+            layer = self.dropout1(layer)
         return self.dense2(layer)
-
-
-if __name__ == '__main__':
-    model = MNISTModel()
-    model.compile(
-        loss=tf.keras.losses.CategoricalCrossentropy(),
-        optimizer=tf.keras.optimizers.SGD(lr=0.01, momentum=0.9),
-        metrics=['accuracy']
-    )
-
-    image_paths = glob.glob("data/trainingSet/*/*")
-    print(len(image_paths))
-    labels = [int(image_path.split("/")[-2]) for image_path in image_paths]
-    print(len(labels))
-    ds = Dataset(image_paths, 'png', 1, labels=labels)
-
-    batch_dataset = ds.get_dataset_batches(32, 10)
-    print("Entering loop")
-    for idx, batch in enumerate(batch_dataset):
-        history = model.train_on_batch(batch[0], batch[1])
-        if idx % 500 == 0:
-            print(idx, {metric: val for metric, val in zip(model.metrics_names, history)})
-
 
