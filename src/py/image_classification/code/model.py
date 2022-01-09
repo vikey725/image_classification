@@ -1,7 +1,4 @@
 import tensorflow as tf
-import glob
-import numpy as np
-from datasets.dataset import Dataset
 from tensorflow.keras.layers import (
     Conv2D, MaxPooling2D, Dense, Flatten, Dropout
 )
@@ -11,6 +8,8 @@ tf.config.experimental_run_functions_eagerly(True)
 
 class MNISTModel(Model):
     def __init__(self):
+        """CNN Model to classify images into digits """
+
         super(MNISTModel, self).__init__()
         self.conv1 = Conv2D(32, 3, activation='relu')
         self.pool1 = MaxPooling2D((2, 2))

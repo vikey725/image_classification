@@ -1,0 +1,7 @@
+version: '3'
+services:
+  mnist-tf-repo:
+    image: ${DOCKER_IMAGE-image_classifier}:${DOCKER_TAG-local}
+    build:
+      context: ../../
+      dockerfile: ops/docker/Dockerfile

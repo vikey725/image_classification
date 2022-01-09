@@ -1,26 +1,33 @@
-import tensorflow as tf
 import os
 import glob
-from PIL import Image
-from datasets.dataset import Dataset
-from code.model import MNISTModel
-from code.model_ops import ModelOPS
-from configs.model_config import ModelConfig
+from image_classification.datasets.dataset import Dataset
+from image_classification.code.model_ops import ModelOPS
+from image_classification.configs.model_config import ModelConfig
 from sklearn.model_selection import train_test_split
+
+# comment if you are using CUDA
+os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 
 
 def execute():
+    """Runs training and prediction"""
+
     ds = Dataset()
     model_op = ModelOPS()
 
+    # Get image paths and labels for training images
     train_images_path = glob.glob(ModelConfig.TRAIN_IMAGE_DIR_PATH)
     test_images_path = glob.glob(ModelConfig.TEST_IMAGE_DIR_PATH)
     train_labels = [int(image_path.split("/")[-2]) for image_path in train_images_path]
 
+    # split training data into train and val set
     train_x, val_x, train_y, val_y = train_test_split(train_images_path, train_labels,
                                                       test_size=0.1, random_state=42)
 
+    # training using TFRecords
     if ModelConfig.USE_TFRecords:
+        if not os.path.exists(ModelConfig.TFRecords_DIR):
+            os.makedirs(ModelConfig.TFRecords_DIR, exist_ok=True)
         train_file = os.path.join(ModelConfig.TFRecords_DIR, 'train.tfrecords')
         val_file = os.path.join(ModelConfig.TFRecords_DIR, 'val.tfrecords')
         test_file = os.path.join(ModelConfig.TFRecords_DIR, 'test.tfrecords')
@@ -44,7 +51,13 @@ def execute():
         test_dataset, test_dataset_itr = ds.get_dataset(test_images_path, op='test')
         full_train_dataset, full_train_dataset_itr = ds.get_dataset(train_images_path, labels=train_labels)
 
-    model_op.train_on_batches(train_dataset_itr, val_dataset=val_dataset)
+    # Train model
+    model_op.train_on_batches(train_dataset, val_dataset=val_dataset)
+
+    # Predict output using trained model
+    probs, preds = model_op.predict_batch(test_dataset)
+    print(preds[:12])
+    print(probs[:12])
 
 if __name__ == '__main__':
     execute()

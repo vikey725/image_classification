@@ -2,6 +2,9 @@ import tensorflow as tf
 
 
 class BaseConfig:
+    """
+    Base config class
+    """
     IMAGE_TYPE = 'jpeg'
     CHANNELS = 3
     resize_shape = (28, 28)
